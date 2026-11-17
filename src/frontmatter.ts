@@ -6,11 +6,24 @@ import { parse as parseYaml } from 'yaml';
  * that exists in gray-matter's built-in JS engine.
  */
 export function parseFrontmatter(raw: string): {
-  data: Record<string, unknown>;
+  data: Record<string, unknown> & { metadata?: Record<string, unknown> };
   content: string;
 } {
   const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
   if (!match) return { data: {}, content: raw };
-  const data = (parseYaml(match[1]!) as Record<string, unknown>) ?? {};
-  return { data, content: match[2] ?? '' };
+  const parsed: unknown = parseYaml(match[1]!);
+  const data =
+    parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : {};
+  const { metadata, ...fields } = data;
+  return {
+    data: {
+      ...fields,
+      ...(metadata !== null && typeof metadata === 'object' && !Array.isArray(metadata)
+        ? { metadata: metadata as Record<string, unknown> }
+        : {}),
+    },
+    content: match[2] ?? '',
+  };
 }

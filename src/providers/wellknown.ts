@@ -277,7 +277,12 @@ export class WellKnownProvider implements HostProvider {
       const { data } = parseFrontmatter(content);
 
       // Validate frontmatter has name and description
-      if (!data.name || !data.description) {
+      if (
+        typeof data.name !== 'string' ||
+        !data.name ||
+        typeof data.description !== 'string' ||
+        !data.description
+      ) {
         return null;
       }
 
